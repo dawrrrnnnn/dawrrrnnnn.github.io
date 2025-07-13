@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Scene 3 - Liminal Space</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    html,body{width:100vw;height:100vh;font-family:Arial,sans-serif;background:black;overflow:hidden;}
+
+    .scene{width:100%;height:100%;background:black url('liminal space.png') center/cover no-repeat;
+           position:relative;display:flex;justify-content:center;align-items:center;
+           animation:fadeIn 2s ease-in-out forwards;}
+    @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+
+    .dialogue-box{position:absolute;
+      bottom:20px;
+      left:50%;
+      transform:translateX(-50%);
+      width:90%;
+      max-width:700px;
+      background:rgba(0,0,0,0.85);
+      color:white;padding:18px 24px;
+      font-size:20px;
+      border-radius:12px;z-index:5;
+      cursor:pointer;}
+
+    .you-label{font-weight:bold;
+      background:#0ff;
+      color:black;
+      display:inline-block;
+      padding:4px 12px;
+      border-radius:6px;
+      margin-bottom:10px;
+      font-size:18px;
+      transform:translateY(-6px);}
+
+    .note{position:absolute;
+      right:60px;
+      top:40%;
+      width:180px;
+      cursor:pointer;
+      z-index:3;}
+
+    .click-hint{position:absolute;
+      right:35px;
+      top:calc(40% - 70px);
+      display:none;
+      text-align:center;
+      font-size:32px;
+      font-family:'Arial Black',sans-serif;
+      font-weight:bold;
+      color:white;
+      text-shadow:0 0 10px rgba(255,255,255,0.9);
+      z-index:4;
+      user-select:none;
+      animation:blink .8s step-start infinite;}
+    @keyframes blink{50%{opacity:0;}}
+
+    .zoomed-note{
+      position:fixed;
+      top:50%;
+      left:50%;
+      transform:translate(-50%,-50%);
+      max-width:80%;
+      max-height:80%;
+      display:none;
+      z-index:10;
+      border:none;}
+
+    .overlay{
+      position:fixed;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      background:rgba(0,0,0,.8);
+      display:none;
+      z-index:9;}
+
+    .start-btn{
+      display:none;
+      position:absolute;
+      bottom:120px;
+      left:50%;
+      transform:translateX(-50%);
+      padding:12px 24px;
+      font-size:18px;
+      background:#0ff;
+      color:black;
+      border:none;
+      border-radius:10px;
+      cursor:pointer;
+      z-index:5;}
+
+    .fade-out{animation:fadeToBlack 2s forwards;}
+    
+    @keyframes fadeToBlack{to{opacity:0;}}
+  </style>
+</head>
+<body>
+  <!-- AUDIO -->
+  <audio id="ambientAudio" src="ambient.mp3" loop></audio>
+  <audio id="rustleAudio"  src="rustle.mp3"></audio>
+
+  <div class="scene" id="scene">
+    <!-- Dialogue -->
+    <div class="dialogue-box" id="dialogueBox">
+      <div class="you-label">YOU</div>
+      <div id="dialogueText"></div>
+    </div>
+
+    <!-- Note -->
+    <img src="paper on the wall.png" alt="Note on the wall" class="note" id="note" style="pointer-events:none;"/>
+
+    <!-- Hint -->
+    <div class="click-hint" id="clickHint">CLICK HERE!!<br>&#x2B07;</div>
+
+    <!-- Zoomed Note -->
+    <div class="overlay" id="overlay"></div>
+    <img src="clear version.png" alt="Zoomed Note" class="zoomed-note" id="zoomedNote"/>
+
+    <!-- Start Button -->
+    <button class="start-btn" id="startBtn">Start Question 1</button>
+  </div>
+
+  <script>
+    /* Dialogue lines */
+    const dialogueLines=[
+      "Where am I??",
+      "This does not look like my bedroom, or my school.",
+      "Oh no! What do I do?",
+      "Wait, I think I see a piece of paper on the wall, let me see what does it say.",
+      "Okay.... this is so weird.",
+      "I want to get out of this scary place though, so let's get this done and over with.",
+      "How do I start? I guess I should enter this door on the right..."
+    ];
+
+    /* DOM references */
+    const dialogueBox=document.getElementById('dialogueBox');
+    const dialogueText=document.getElementById('dialogueText');
+    const note=document.getElementById('note');
+    const zoomedNote=document.getElementById('zoomedNote');
+    const overlay=document.getElementById('overlay');
+    const startBtn=document.getElementById('startBtn');
+    const clickHint=document.getElementById('clickHint');
+
+    /* Audio refs */
+    const ambientAudio=document.getElementById('ambientAudio');
+    const rustleAudio =document.getElementById('rustleAudio');
+    ambientAudio.volume=0.1; // subtle
+
+    /* Play ambient AFTER first user interaction (autoplay fix) */
+    document.body.addEventListener('click', function initAmbient(){
+      ambientAudio.play().catch(()=>{});
+      document.body.removeEventListener('click', initAmbient);
+    });
+
+    /* Typing logic */
+    let index=0, typing=false;
+    function typeWriter(text,i=0){
+      if(i===0) dialogueText.textContent="";
+      if(i<text.length){
+        dialogueText.textContent+=text.charAt(i);
+        typing=true;
+        setTimeout(()=>typeWriter(text,i+1),30);
+      }else{
+        typing=false;
+        if(text.includes("paper on the wall")){
+          dialogueBox.onclick=()=>{
+            dialogueBox.style.display="none";
+            note.style.pointerEvents="auto";
+            clickHint.style.display="block";
+            dialogueBox.onclick=null;
+          };
+        }else{
+          dialogueBox.onclick=nextLine;
+        }
+      }
+    }
+
+    function nextLine(){
+      if(typing) return;
+      if(index<dialogueLines.length){
+        typeWriter(dialogueLines[index]);
+        index++;
+        dialogueBox.onclick=null;
+      }else if(index===dialogueLines.length){
+        startBtn.style.display='block';
+      }
+    }
+
+    /* Paper interaction */
+    note.addEventListener('click',()=>{
+      clickHint.style.display="none";
+      zoomedNote.style.display="block";
+      overlay.style.display="block";
+      rustleAudio.currentTime=0; rustleAudio.play().catch(()=>{});
+    });
+
+    overlay.addEventListener('click',()=>{
+      zoomedNote.style.display="none";
+      overlay.style.display="none";
+      dialogueBox.style.display="block";
+      nextLine();
+    });
+
+    /* Start Button */
+    startBtn.addEventListener('click',()=>{
+      document.getElementById('scene').classList.add('fade-out');
+      ambientAudio.pause();  // stop background if desired
+      setTimeout(()=>{ window.location.href="scene4.html"; },2000);
+    });
+
+    /* Start story */
+    typeWriter(dialogueLines[index]); index++;
+  </script>
+</body>
+</html>

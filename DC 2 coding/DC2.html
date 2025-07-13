@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Looped In - Refined</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      background: url('liminal space.png') no-repeat center center fixed;
+      background-size: cover;
+      font-family: Arial, sans-serif;
+      background: black;
+      overflow: hidden;
+    }
+
+    .start-screen, .scene {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: black;
+      z-index: 10;
+    }
+
+    .start-screen h1 {
+      color: white;
+      font-size: 48px;
+      margin-bottom: 30px;
+    }
+
+    .start-screen button {
+      font-size: 24px;
+      padding: 12px 24px;
+      background-color: #0ff;
+      color: black;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .scene {
+      display: none;
+      background: url('laptop screen.png') center center / cover no-repeat;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    .instruction-box {
+      position: absolute;
+      top: 20px;
+      border: 2px solid white;
+      padding: 15px 30px;
+      color: black;
+      font-size: 22px;
+      max-width: 800px;
+      text-align: center;
+      z-index: 3;
+      background: #f5f5dc;
+      border-radius: 16px;
+    }
+
+    .laptop-screen {
+      margin-top: 100px;
+      position: relative;
+      width: 50%;
+      height: 50%;
+      padding: 30px 35px;
+      color: white;
+      font-size: 24px;
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+      overflow-y: auto;
+      z-index: 2;
+      scrollbar-width: thin;
+    }
+
+    .notes h2 {
+      font-size: 22px;
+      margin-bottom: 15px;
+      color: #fff8dc;
+    }
+
+    .notes p {
+      margin-bottom: 14px;
+      line-height: 1.5;
+      font-size: 24px;
+    }
+
+    .clock {
+      position: absolute;
+      bottom: 25%;
+      right: 26%;
+      color: white;
+      font-size: 16px;
+      z-index: 3;
+    }
+
+    .dialogue-box {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 700px;
+      background: rgba(0, 0, 0, 0.85);
+      color: white;
+      padding: 18px 24px;
+      font-size: 20px;
+      border-radius: 12px;
+      z-index: 4;
+      display: none;
+      cursor: pointer;
+    }
+
+    .you-label {
+      font-weight: bold;
+      background: #0ff;
+      color: black;
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      font-size: 18px;
+      transform: translateY(-6px);
+    }
+
+    #sleepButton {
+      display: none;
+      position: absolute;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 24px;
+      font-size: 20px;
+      background-color: #0ff;
+      color: black;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      z-index: 5;
+    }
+
+    .fade {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      background: black;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 2s;
+      z-index: 10;
+    }
+
+    .fade.in {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+<audio id="tickAudio" src="clock ticking.mp3" loop></audio>
+<audio id="dreamAudio" src="dream.mp3" loop></audio>
+  <div class="start-screen" id="startScreen">
+    <div style="display: flex; flex-direction: column; align-items: center;">
+      <h1>Looped In</h1>
+      <button onclick="startExperience()">Play</button>
+    </div>
+  </div>
+
+  <div class="scene" id="scene1">
+    <div class="instruction-box" id="instructionText">
+      You are studying for your "Harms of Generative AI" test tomorrow. Read it carefully.
+    </div>
+
+    <div class="laptop-screen" id="pointText">
+      <div class="notes">
+        <h2>Harms of Generative AI and how to prevent yourself from falling for traps.</h2>
+        <p><strong>1.</strong> Generative AI can deepen misinformation. AI can fabricate fake news, images, and even video footage, misleading the public.<br><strong>Avoid:</strong> Verify information from multiple sources and use AI-detection tools when in doubt.</p>
+        <p><strong>2.</strong> It amplifies bias and stereotypes in content. Biased training data leads to unfair or harmful outputs.<br><strong>Avoid:</strong> Stay critical of content and demand transparency from platforms using AI.</p>
+        <p><strong>3.</strong> Deepfakes and impersonation. AI can create hyper-realistic impersonations of individuals for scams or harassment.<br><strong>Avoid:</strong> Protect your digital identity and double-check any suspicious online interaction.</p>
+        <p><strong>4.</strong> Automated abuse and harassment. Bots powered by AI can target individuals repeatedly.<br><strong>Avoid:</strong> Report abuse and use tools to block or mute malicious content or users.</p>
+        <p><strong>5.</strong> AI-generated non-consensual content. Personal images can be altered or distributed without consent.<br><strong>Avoid:</strong> Limit what you share publicly, and know your rights regarding image misuse.</p>
+      </div>
+    </div>
+
+    <div class="clock">11:30 PM</div>
+
+    <div class="dialogue-box" id="dialogueBox">
+      <div class="you-label">YOU</div>
+      <div id="dialogueText"></div>
+    </div>
+
+    <button id="sleepButton">Go to sleep</button>
+
+    <div class="fade" id="fade"></div>
+  </div>
+
+  <script>
+    const dialogueLines = [
+      "AI-generated content is reshaping how we see the internet... but not always for good.",
+      "I've read the material. I get it. It's just information...",
+      "Anyway, it’s pretty late. I’m going to bed."
+    ];
+
+    const dialogueText = document.getElementById('dialogueText');
+    const dialogueBox = document.getElementById('dialogueBox');
+    const sleepButton = document.getElementById('sleepButton');
+    const fade = document.getElementById('fade');
+    const scene = document.getElementById('scene1');
+    const scrollContainer = document.getElementById('pointText');
+    const instructionText = document.getElementById('instructionText');
+    const tickAudio = document.getElementById('tickAudio');
+    const dreamAudio=document.getElementById('dreamAudio')
+    tickAudio.volume = 0.15; 
+    dreamAudio.volume=0.25;
+    dreamAudio.pause();
+    dreamAudio.currentTime = 0;
+
+    let lineIndex = 0;
+    let dialogueTriggered = false;
+    let typingTimeout;
+
+    function startExperience() {
+      document.getElementById('startScreen').style.display = 'none';
+      scene.style.display = 'flex';
+      tickAudio.play().catch(()=>{});
+      dreamAudio.pause(); 
+      dreamAudio.currentTime = 0;
+    }
+
+    function typeWriter(text, i = 0) {
+      clearTimeout(typingTimeout);
+      if (i < text.length) {
+        dialogueText.innerHTML = text.substring(0, i + 1);
+        typingTimeout = setTimeout(() => typeWriter(text, i + 1), 30);
+      } else {
+        dialogueText.innerHTML = text;
+        dialogueBox.onclick = showNextLine;
+      }
+    }
+
+    function showNextLine() {
+      clearTimeout(typingTimeout);
+      if (lineIndex < dialogueLines.length) {
+        typeWriter(dialogueLines[lineIndex]);
+        lineIndex++;
+        if (lineIndex === dialogueLines.length) {
+          dialogueBox.onclick = () => {};
+          sleepButton.style.display = 'block';
+        }
+      }
+    }
+
+    sleepButton.addEventListener('click', () => {
+       tickAudio.pause();
+      dreamAudio.currentTime=0;
+      dreamAudio.play().catch(()=>{});
+      scene.style.transition = 'opacity 2s';
+      scene.style.opacity = '0';
+      setTimeout(() => {
+        fade.classList.add("in");
+        setTimeout(() => {
+          window.location.href = "scene2.html";
+        }, 2000);
+      }, 500);
+    });
+
+    scrollContainer.addEventListener('scroll', () => {
+      const scrollTop = scrollContainer.scrollTop;
+      const scrollHeight = scrollContainer.scrollHeight;
+      const clientHeight = scrollContainer.clientHeight;
+      if (scrollTop + clientHeight >= scrollHeight - 10 && !dialogueTriggered) {
+        dialogueTriggered = true;
+        dialogueBox.style.display = 'block';
+        instructionText.style.display = 'none';
+        showNextLine();
+      }
+    });
+
+    const clockElement = document.querySelector('.clock');
+
+    function parseTime(text) {
+      const [time, meridiem] = text.split(' ');
+      let [hours, minutes] = time.split(':').map(Number);
+      return { hours, minutes, meridiem };
+    }
+
+    function formatTime(hours, minutes) {
+      const meridiem = hours >= 12 ? 'PM' : 'AM';
+      let hr = hours % 12;
+      if (hr === 0) hr = 12;
+      const min = minutes.toString().padStart(2, '0');
+      return `${hr}:${min} ${meridiem}`;
+    }
+
+    let { hours, minutes, meridiem } = parseTime(clockElement.textContent);
+    if (meridiem === 'PM' && hours !== 12) hours += 12;
+    if (meridiem === 'AM' && hours === 12) hours = 0;
+
+    function incrementTime() {
+      minutes++;
+      if (minutes >= 60) {
+        minutes = 0;
+        hours++;
+        if (hours > 23) hours = 0;
+      }
+      clockElement.textContent = formatTime(hours, minutes);
+    }
+
+    setInterval(incrementTime, 60000);
+  </script>
+</body>
+</html>

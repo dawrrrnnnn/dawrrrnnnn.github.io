@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Scene 2 - The Shift</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: black;
+      overflow: hidden;
+      font-family: 'Courier New', monospace;
+      color: #f5f5f5; 
+      position: relative;
+    }
+
+    @keyframes glitchFadeInOut {
+      0%{opacity:0;}
+      10%{opacity:1;transform:translate(-50%,-50%) scale(1.01);}
+      30%{opacity:1;text-shadow:0 0 4px #0ff,0 0 8px #0ff,0 0 12px #0ff,0 0 20px #0ff,0 0 28px #0ff;
+      }80%{opacity:1;}100%{opacity:0;}
+    }
+    .glitch-text{position:absolute;
+      top:50%;
+      left:50%;
+      transform:translate(-50%,-50%);
+      font-size:32px;
+      opacity:0;
+      animation:glitchFadeInOut 3s ease-in-out forwards;
+      text-align:center;
+      white-space:pre-line;
+    }
+
+    #text1{animation-delay:1s;}
+    #text2{animation-delay:5s;}
+    #text3{animation-delay:9s;}
+
+    .fade-out-white{position:absolute;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      background:white;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity 2s ease;
+      z-index:100;
+    }
+
+    .fade-out-white.active{
+      opacity:1;
+    
+  }
+
+    .glitch-overlay{position:absolute;
+      width:100%;
+      height:100%;
+      top:0;
+      left:0;
+      background:repeating-linear-gradient(0deg,rgba(255,255,255,.02) 0 1px,transparent 1px 2px);
+      animation:flicker .15s infinite;
+      pointer-events:none;
+      z-index:1;}
+      
+    @keyframes flicker{0%,100%{opacity:.05;}50%{opacity:.15;}}
+  </style>
+</head>
+<body>
+  <div class="glitch-overlay"></div>
+  <div id="text1" class="glitch-text">Knowledge is one thing.</div>
+  <div id="text2" class="glitch-text">Knowing what to do… is another.</div>
+  <div id="text3" class="glitch-text">Wake up.</div>
+  <div class="fade-out-white" id="whiteFade"></div>
+
+  <!-- Dream ambience (will cut off at 8 s) -->
+  <audio id="dreamAudio" src="in the dream.mp3" loop></audio>
+
+<script>
+  const fade = document.getElementById('whiteFade');
+  const dreamAudio = document.getElementById('dreamAudio');
+  dreamAudio.volume = 0.25;
+
+  // Autoplay requires user interaction; start on first click
+  function initAudio(){
+    document.removeEventListener('click', initAudio);
+    dreamAudio.currentTime = 0;
+    dreamAudio.play().catch(()=>{});
+    // Stop after 8 seconds
+    setTimeout(()=>{ dreamAudio.pause(); dreamAudio.currentTime = 0; }, 8000);
+  }
+  document.addEventListener('click', initAudio, { once:true });
+
+  // Fade to white then redirect
+  setTimeout(()=>{ fade.classList.add('active'); }, 13000);
+  setTimeout(()=>{ window.location.href = 'scene3.html'; }, 15000);
+</script>
+</body>
+</html>
