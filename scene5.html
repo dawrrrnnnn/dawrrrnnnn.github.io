@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scene 5 – Completing the Quiz</title>
+  <style>
+    body{
+      background:url('loop room.png') center/cover no-repeat;
+      color:#fff;
+      font-family:Arial, sans-serif;
+      margin:0;
+      padding:0;
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      height:100vh;
+    }
+
+    .question-box{
+      display:none;
+      background:rgba(0,0,0,.85);
+      border:2px solid #0ff;
+      border-radius:12px;
+      padding:30px;
+      max-width:700px;
+      width:90%;
+      text-align:center;
+      box-shadow:0 0 10px #0ff;
+      z-index:1;
+    }
+
+    .question-number{
+      font-size:18px;
+      margin-bottom:15px;
+      color:#0ff;
+    }
+
+    .question-prompt{
+      font-size:24px;
+      margin-bottom:30px;
+    }
+
+    .choices{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .choice-btn{padding:12px 20px;
+      font-size:18px;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+      transition:background .3s;
+      background:#0ff;
+      color:#000;
+    }
+    
+    .choice-btn.correct{background:#0f0!important;}
+    .choice-btn.wrong  {background:#f00!important;}
+
+    .final-message-overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,.85);
+      display:none;align-items:center;justify-content:center;text-align:center;font-size:24px;padding:40px;
+      color:#fff;z-index:200;}
+
+    .fade-out{position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;opacity:0;
+      transition:opacity .3s ease-in-out;z-index:300;}
+    .fade-out.active{opacity:1;}
+
+    .dialogue-box{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);width:90%;max-width:700px;
+      background:rgba(0,0,0,.85);color:#fff;padding:18px 24px;font-size:20px;border-radius:12px;
+      cursor:pointer;display:none;z-index:400;text-align:left;}
+    .you-label{display:block;font-weight:bold;background:#0ff;color:#000;padding:4px 12px;border-radius:6px;
+      font-size:18px;margin-bottom:8px;width:max-content;}
+  </style>
+</head>
+<body>
+  <!-- AUDIO -->
+  <audio id="tadaAudio"    src="ta da.mp3"></audio>
+  <audio id="ambientAudio" src="ambient.mp3" loop></audio>
+
+  <div class="final-message-overlay" id="finalMessage"></div>
+  <div class="fade-out" id="fade"></div>
+
+  <div class="dialogue-box" id="dialogueBox">
+    <span class="you-label">YOU</span>
+    <span id="dialogueText"></span>
+  </div>
+
+<script>
+/* ---------- helper: try‑play or wait for first user click ---------- */
+function safePlay(audio){
+  const tryPlay = () => {
+    const p = audio.play();
+    if (p instanceof Promise){
+      p.catch(()=>{             // blocked
+        const fallback = ()=>{
+          audio.play().catch(()=>{}); 
+          document.body.removeEventListener('click', fallback);
+        };
+        document.body.addEventListener('click', fallback, {once:true});
+      });
+    }
+  };
+  tryPlay();
+}
+
+/* ---------- audio refs / volumes ---------- */
+const tada    = document.getElementById('tadaAudio');
+const ambient = document.getElementById('ambientAudio');
+tada.volume    = 0.8;
+ambient.volume = 0.15;
+
+/* ---------- overlay + ta‑da ---------- */
+const finalMsg = document.getElementById('finalMessage');
+const fade     = document.getElementById('fade');
+let   hasMadeMistake = false;   // update from quiz scene if needed
+
+function showFinalMessage(){
+  fade.classList.add('active');
+  setTimeout(()=>{
+    fade.classList.remove('active');
+
+    finalMsg.textContent = hasMadeMistake
+      ? "Congratulations, you have finally passed the test after a few tries. You are free to leave."
+      : "Congratulations, you have passed the test. You are free to leave.";
+    finalMsg.style.display='flex';
+
+    /* play ta‑da immediately, stop when leaving overlay */
+    safePlay(tada);
+
+    setTimeout(()=>{
+      finalMsg.style.display='none';
+      tada.pause(); tada.currentTime = 0;          // cut off when overlay ends
+      safePlay(ambient);                           // start ambient once in loop room
+      startDialogue();
+    },4000);
+  },300);
+}
+
+/* ---------- dialogue ---------- */
+const lines=[
+  "Finally!! Time to go home!!",
+  "Wait, how do I get out?",
+  "Hmm... I'm starting to feel tired...."
+];
+let cur=0, typer;
+const dlgBox=document.getElementById('dialogueBox');
+const dlgTxt=document.getElementById('dialogueText');
+
+function typeLine(text){
+  clearInterval(typer);
+  dlgTxt.textContent='';
+  let i=0;
+  typer=setInterval(()=>{ dlgTxt.textContent+=text.charAt(i++); if(i>=text.length) clearInterval(typer); },30);
+}
+function startDialogue(){
+  dlgBox.style.display='block';
+  typeLine(lines[cur]);
+}
+dlgBox.addEventListener('click',()=>{
+  if(dlgTxt.textContent!==lines[cur]){ clearInterval(typer); dlgTxt.textContent=lines[cur]; return; }
+  cur++;
+  if(cur<lines.length){
+    typeLine(lines[cur]);
+  }else{
+    ambient.pause();
+    fade.classList.add('active');
+    setTimeout(()=>location.href='scene6.html',1000);
+  }
+});
+
+/* ---------- init ---------- */
+showFinalMessage();
+</script>
+</body>
+</html>

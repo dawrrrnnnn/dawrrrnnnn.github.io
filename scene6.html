@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Scene 6 - Wake Up</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      font-family: Arial, sans-serif;
+      background: black;
+      overflow: hidden;
+    }
+    .scene {
+      width: 100%;
+      height: 100%;
+      background: url('bedroom.png') center/cover no-repeat;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      opacity: 0;
+      animation: fadeIn 1s forwards;
+    }
+    @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+
+    .dialogue-box {
+      position: absolute;
+      bottom:30px;
+      left:50%;
+      transform:translateX(-50%);
+      width:90%;
+      max-width:700px;
+      background:rgba(0,0,0,.85);
+      color:#fff;
+      padding:18px 24px;
+      font-size:20px;
+      border-radius:12px;
+      cursor:pointer;
+      user-select:none;
+      z-index:5;
+    }
+
+    .you-label{
+      font-weight:bold;
+      background:#0ff;
+      color:#000;
+      display:inline-block;
+      padding:4px 12px;
+      border-radius:6px;
+      margin-bottom:10px;
+      font-size:18px;
+      transform:translateY(-6px);
+    }
+
+    .phone{
+      position:fixed;
+      top:50%;
+      left:50%;
+      transform:translate(-50%,-50%);
+      width:1000px;
+      display:none;
+      z-index:10;
+    }
+
+    .fade-out{animation:fadeOut 1.2s forwards;}@keyframes fadeOut{to{opacity:0;}}
+
+    .end-screen{
+      display:none;
+      position:fixed;
+      top:0;
+      left:0;
+      width:100vw;
+      height:100vh;
+      background:#000;
+      color:#fff;
+      font-size:24px;
+      justify-content:center;
+      align-items:center;
+      flex-direction:column;
+      z-index:20;
+    }
+
+    .end-screen button{
+      margin-top:20px;
+      padding:12px 24px;
+      font-size:18px;
+      background:#0ff;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+      color:#000;
+    }
+  </style>
+</head>
+<body>
+  <!-- Audio -->
+  <audio id="roosterAudio" src="rooster.mp3"></audio>
+  <audio id="clockAudio"   src="clock ticking.mp3" loop></audio>
+
+  <div class="scene" id="scene">
+    <div class="dialogue-box" id="dialogueBox">
+      <div class="you-label">YOU</div>
+      <div id="dialogueText"></div>
+    </div>
+    <img src="phone.png" alt="Phone showing 8:30am" class="phone" id="phone" />
+  </div>
+
+  <div class="end-screen" id="endScreen">
+    <div>Congratulations, you have completed the game!</div>
+    <button id="playAgainBtn">Play Again</button>
+  </div>
+
+<script>
+  /* ---------- AUDIO ---------- */
+  const roosterAudio = document.getElementById('roosterAudio');
+  const clockAudio   = document.getElementById('clockAudio');
+  roosterAudio.volume=.8; clockAudio.volume=.4;
+
+  /* ---------- DOM REFS ---------- */
+  const dialogueBox = document.getElementById('dialogueBox');
+  const dialogueText= document.getElementById('dialogueText');
+  const phone       = document.getElementById('phone');
+  const scene       = document.getElementById('scene');
+  const endScreen   = document.getElementById('endScreen');
+  const playAgainBtn= document.getElementById('playAgainBtn');
+
+  /* ---------- DIALOGUE ---------- */
+  const firstPart=[
+    "Was that a dream? That felt too real.",
+    "What time is it?"
+  ];
+  const secondPart=[
+    "Oh no! I'm going to be late for my test!",
+    "The dream taught me so much about the harms of AI and what to do.",
+    "I'm sure I will do well for the test!",
+    "I need to get ready for school now."
+  ];
+  let currentLine=0, showFirst=true;
+  let typing=false, typingTimeout=null;
+
+  function typeWriter(line, index=0){
+    clearTimeout(typingTimeout);
+    if(index===0) dialogueText.textContent='';
+    if(index<line.length){
+      typing=true;
+      dialogueText.textContent+=line.charAt(index);
+      typingTimeout=setTimeout(()=>typeWriter(line,index+1),30);
+    }else{
+      typing=false;
+    }
+  }
+
+  function finishCurrentLine(){
+    clearTimeout(typingTimeout);
+    dialogueText.textContent = showFirst ? firstPart[currentLine] : secondPart[currentLine];
+    typing=false;
+  }
+
+  function advanceDialogue(){
+    if(typing){ finishCurrentLine(); return; }
+    currentLine++;
+    if(showFirst){
+      if(currentLine<firstPart.length){
+        typeWriter(firstPart[currentLine]);
+      }else{ // show phone
+        dialogueBox.style.display='none';
+        phone.style.display='block';
+        currentLine=-1;
+        showFirst=false;
+      }
+    }else{
+      if(phone.style.display==='block'){
+        phone.style.display='none';
+        dialogueBox.style.display='block';
+        currentLine=0;
+        typeWriter(secondPart[currentLine]);
+      }else if(currentLine<secondPart.length){
+        typeWriter(secondPart[currentLine]);
+      }else{ // end
+        scene.classList.add('fade-out');
+        setTimeout(()=>{scene.style.display='none';endScreen.style.display='flex';},1200);
+      }
+    }
+  }
+
+  dialogueBox.addEventListener('click',advanceDialogue);
+  phone.addEventListener('click',advanceDialogue);
+  playAgainBtn.addEventListener('click',()=>location.href='DC2.html');
+
+  // ---- Start audios on first user gesture ----
+  document.addEventListener('click',function startAudio(){
+    document.removeEventListener('click',startAudio);
+    // play first 4s of rooster
+    roosterAudio.currentTime=0; roosterAudio.play().catch(()=>{});
+    setTimeout(()=>{roosterAudio.pause();roosterAudio.currentTime=0;},4000);
+    // clock ticks continuously
+    clockAudio.currentTime=0; clockAudio.play().catch(()=>{});
+  },{once:true});
+
+  // Start first dialogue type
+  typeWriter(firstPart[0]);
+</script>
+</body>
+</html>
